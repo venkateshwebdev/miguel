@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef,useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   useGLTF,
   useAnimations,
@@ -6,44 +6,62 @@ import {
   PositionalAudio,
 } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { MusicContext } from "./MusicContext";
+import { MusicContext, ThemeContext } from "./MusicContext";
 
 export function Miguel(props) {
   const scroll = useScroll();
   const [animation, setAnimation] = useState(
     "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@atk-02|Base L"
   );
+  //
+  // hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@skill06-01_ca
   const group = useRef();
   const { music, setMusic } = useContext(MusicContext);
   const { nodes, materials, animations } = useGLTF(
     "/spider-man_2099_across_the_spider-verse.glb"
   );
   const { actions } = useAnimations(animations, group);
-  console.log(actions);
   useEffect(() => {
-    actions[
-      "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@atk-02|Base L"
-    ]
-      .reset()
-      .play().paused = true;
+      actions[animation].reset().play().paused = true;
+    return () => {
+      actions[animation].reset().stop();
+    };
+  }, [animation]);
 
-    return () =>
-      actions[
+
+  useFrame((state) => {
+    setMusic(scroll.offset);
+    console.log(scroll.offset)
+    if (scroll.offset > 0.19)
+      setAnimation(
+        "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@skill06-01_ca"
+      );
+    if (scroll.offset < 0.19)
+      setAnimation(
         "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@atk-02|Base L"
-      ]
-        .reset()
-        .stop();
-  }, []);
-  useFrame(() => {
-    (scroll.offset > 0.2) & (scroll.offset < 0.6) && setMusic(false);
-    scroll.offset > 0.6 && setMusic(true);
-    actions[
-      "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@atk-02|Base L"
-    ].time =
-      actions[
-        "hero_spiderman209901_S02|hero_spiderman209901_S02|hero_spiderman209901_S02@atk-02|Base L"
-      ].getClip().duration * scroll.offset;
-    console.log(music);
+      );
+    if (scroll.offset < 0.175) {
+      actions[animation].time =
+        actions[animation].getClip().duration * scroll.offset * 8;
+        state.camera.position.z=5
+    }
+    if(scroll.offset>0.175&&scroll.offset<0.2){
+      state.camera.position.z=5-scroll.offset
+    }
+    if (scroll.offset > 0.2) {
+      actions[animation].time =
+        actions[animation].getClip().duration * scroll.offset*2;
+    }
+    if(scroll.offset>0.3){
+      state.camera.position.z= 15*scroll.offset
+    }
+    if(scroll.offset<0.7){
+      group.current.position.x=0
+    }
+    if(scroll.offset>0.7){
+      state.camera.position.z=10
+      group.current.position.x=100
+    }
   });
   return (
     <>
